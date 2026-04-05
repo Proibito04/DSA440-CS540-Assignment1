@@ -34,14 +34,15 @@ def call_target(prompt):
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3-flash-preview",
             contents=types.Part.from_text(text=prompt)
         )
         if response.text:
             return response.text
         return "ERROR: Empty response (possibly blocked by safety filters)."
     except Exception as e:
-        return f"ERROR: {str(e)}"
+        print(f"ERROR: {str(e)}")
+        exit(1)
 
 def call_judge(objective, prompt, response):
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
