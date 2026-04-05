@@ -1,9 +1,13 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
 \BOOKMARK [1][-]{section.2}{Methodology}{}% 2
-\BOOKMARK [2][-]{subsection.2.1}{Comparative Bias Pipeline}{section.2}% 3
-\BOOKMARK [2][-]{subsection.2.2}{Adversarial Jailbreaking \(PAIR\)}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.1}{Automated Methodology Pipeline}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Prompt Engineering Strategy}{section.2}% 4
 \BOOKMARK [1][-]{section.3}{Results}{}% 5
-\BOOKMARK [2][-]{subsection.3.1}{Regional Bias Observations}{section.3}% 6
-\BOOKMARK [2][-]{subsection.3.2}{PAIR Attack Performance}{section.3}% 7
-\BOOKMARK [1][-]{section.4}{Discussion}{}% 8
-\BOOKMARK [1][-]{section.5}{Conclusion}{}% 9
+\BOOKMARK [2][-]{subsection.3.1}{Quantitative Comparison}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{Qualitative Analysis: "Alex" vs. "Elena"}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.3}{Adversarial Findings \(PAIR Success\)}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{Discussion}{}% 9
+\BOOKMARK [2][-]{subsection.4.1}{Insight on Prompt Performance}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.2}{Ethical Implications: UK Equality Act \046 KVKK}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.3}{Benefits, Challenges, and Effort}{section.4}% 12
+\BOOKMARK [1][-]{section.5}{Conclusion}{}% 13
