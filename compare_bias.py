@@ -2,7 +2,8 @@ import os
 import json
 from dotenv import load_dotenv
 from openai import OpenAI
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -38,10 +39,18 @@ def call_openai(prompt):
     return response.choices[0].message.content
 
 def call_gemini(prompt):
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(prompt)
-    return response.text
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    response = client.models.generate_content(
+      model='gemini-2.5-flash',
+      contents=types.Part.from_text(text=prompt)
+    )
+    try:
+        if response.text:
+            return response.text
+        else:
+            return "ERROR: Empty response (possibly blocked by safety filters)."
+    except Exception as e:
+        return f"ERROR: {str(e)}"
 
 if __name__ == "__main__":
     prompts = generate_prompts()
@@ -59,13 +68,14 @@ if __name__ == "__main__":
             gemini_resp = call_gemini(p['text'])
         except Exception as e:
             gemini_resp = f"ERROR: {str(e)}"
-            
-        results.append({
+
+        result = {
             "region": p['region'],
             "prompt": p['text'],
             "chatgpt": chatgpt_resp,
             "gemini": gemini_resp
-        })
+        }
+        results.append(result)
     
     # Simple check to verify results
     print(f"Collected {len(results)} results.")
