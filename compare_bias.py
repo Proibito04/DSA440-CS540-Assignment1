@@ -71,3 +71,8 @@ if __name__ == "__main__":
     print(f"Collected {len(results)} results.")
     if results:
         print("First result keys:", results[0].keys())
+
+    # At the end of the main block:
+    with open("bias_results.json", "w") as f:
+        json.dump(results, f, indent=4)
+    print("Results saved to bias_results.json")
