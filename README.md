@@ -2,7 +2,7 @@
 
 **Group:** Altınüzengi, Balcı, Günindi, Balzano — Sabancı University  
 **Course:** CS540 Data & AI Ethics  
-**Dataset:** [OULAD](https://analyse.kmi.open.ac.uk/open_dataset)
+**Dataset:** [OULAD](https://analyse.kmi.open.ac.uk/open-dataset)
 
 ## Setup
 
