@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 ## Dataset
 
-Download OULAD from https://analyse.kmi.open.ac.uk/open_dataset and place the CSV files into `data/`.
+Download OULAD from https://analyse.kmi.open.ac.uk/open-dataset and place the CSV files into `data/`.
 
 Required files:
 - `studentInfo.csv`
