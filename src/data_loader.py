@@ -41,8 +41,10 @@ def load_oulad(data_dir: Path = DATA_DIR) -> pd.DataFrame:
         .apply(
             lambda df: pd.Series(
                 {
-                    "weighted_score": np.average(
-                        df["score"].fillna(0), weights=df["weight"]
+                    "weighted_score": (
+                        np.average(df["score"].fillna(0), weights=df["weight"])
+                        if df["weight"].sum() > 0
+                        else df["score"].fillna(0).mean()
                     ),
                     "submission_rate": df["score"].notna().mean(),
                 }
