@@ -1,0 +1,24 @@
+# Plans (local only, not shared with group)
+plans/
+
+# Dataset files (too large for git, download separately)
+data/
+*.csv
+*.zip
+*.gz
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# OS
+.DS_Store
+Thumbs.db
