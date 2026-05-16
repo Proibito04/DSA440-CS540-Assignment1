@@ -85,12 +85,21 @@ def explain_lime_instance(
     instance: pd.Series,
     num_features: int = 8,
 ):
-    """Returns a LIME explanation object for one instance."""
+    """
+    Renders a LIME explanation for one instance as a matplotlib figure.
+    Uses as_pyplot_figure() instead of show_in_notebook() to avoid
+    IPython version compatibility issues.
+    Returns the LIME explanation object for further inspection.
+    """
     exp = lime_explainer.explain_instance(
         instance.values,
         model.predict_proba,
         num_features=num_features,
         labels=[1],
     )
-    exp.show_in_notebook(show_table=True)
+    fig = exp.as_pyplot_figure(label=1)
+    fig.set_size_inches(10, 5)
+    plt.title("LIME Explanation — At-Risk Class (label=1)")
+    plt.tight_layout()
+    plt.show()
     return exp

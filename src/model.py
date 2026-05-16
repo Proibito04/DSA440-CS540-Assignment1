@@ -1,5 +1,6 @@
 """
-Base prediction model: trains and evaluates a Random Forest classifier on OULAD features.
+Base prediction model: trains and evaluates a classifier on OULAD features.
+Supports Random Forest (default) and XGBoost via the model_type parameter.
 Returns a fitted model and train/test splits for use by all principle modules.
 """
 
@@ -30,17 +31,48 @@ def build_splits(
 def train_model(
     X_train: pd.DataFrame,
     y_train: pd.Series,
+    model_type: str = "rf",
     n_estimators: int = 200,
     random_state: int = 42,
-) -> RandomForestClassifier:
-    """Trains a Random Forest and returns the fitted model."""
-    model = RandomForestClassifier(
-        n_estimators=n_estimators,
-        max_depth=10,
-        class_weight="balanced",
-        random_state=random_state,
-        n_jobs=-1,
-    )
+):
+    """
+    Trains a classifier and returns the fitted model.
+
+    Parameters
+    ----------
+    model_type : "rf" (default) | "xgb"
+        "rf"  → RandomForestClassifier (SHAP TreeExplainer compatible)
+        "xgb" → XGBClassifier          (SHAP TreeExplainer compatible)
+        Both options work without any changes to the downstream principle modules.
+    n_estimators : int
+        Number of trees (applies to both RF and XGB).
+    random_state : int
+        Reproducibility seed.
+    """
+    if model_type == "xgb":
+        from xgboost import XGBClassifier
+        # scale_pos_weight approximates class_weight="balanced" for binary targets
+        neg, pos = (y_train == 0).sum(), (y_train == 1).sum()
+        model = XGBClassifier(
+            n_estimators=n_estimators,
+            max_depth=6,
+            scale_pos_weight=neg / pos if pos > 0 else 1,
+            random_state=random_state,
+            n_jobs=-1,
+            eval_metric="logloss",
+            verbosity=0,
+        )
+    elif model_type == "rf":
+        model = RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=10,
+            class_weight="balanced",
+            random_state=random_state,
+            n_jobs=-1,
+        )
+    else:
+        raise ValueError(f"Unknown model_type '{model_type}'. Choose 'rf' or 'xgb'.")
+
     model.fit(X_train, y_train)
     return model
 
