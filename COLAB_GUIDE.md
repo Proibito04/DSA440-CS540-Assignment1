@@ -101,22 +101,55 @@ You can open them from the Colab file browser (left panel 📁).
 
 ---
 
-## Step 6 — Run in Order
+## Step 6 — Generate Shared Artifacts
 
-Always run `01` and `02` first — they produce the shared model artifacts that all other notebooks depend on.
+Instead of running the interactive `01` and `02` notebooks, use `prepare_artifacts.py`
+to generate all required `.pkl` files in one command:
 
-| Step | Notebook | Outputs |
-|---|---|---|
-| 1 | `01_data_exploration.ipynb` | — (EDA only) |
-| 2 | `02_base_model.ipynb` | `data/base_model.pkl`, `X_train.pkl`, `X_test.pkl`, `y_test.pkl` |
-| 3+ | Individual principle notebooks | — |
+```python
+!python prepare_artifacts.py
+```
+
+This reads `data/` for the OULAD CSVs, trains the base model, and saves:
+
+| File | Contents |
+|---|---|
+| `data/base_model.pkl` | Trained `RandomForestClassifier` |
+| `data/X_train.pkl` | Training features |
+| `data/X_test.pkl` | Test features |
+| `data/y_test.pkl` | Test labels |
+
+After this completes, open your principle notebook (`03`, `04`, `05`, or `06`).
+
+> **Agit, Edoardo, Yasemin:** you don't need to open `01` or `02` at all.
+> Just run Steps 1–4 from the All-in-One cell and then run `!python prepare_artifacts.py`.
 
 ---
 
 ## If Your Runtime Resets
 
-Colab sessions are not persistent. After a reset, redo **Steps 1–4** and re-run `02_base_model.ipynb`  
-to regenerate the `.pkl` artifacts. Your Drive files are always safe.
+Colab sessions are not persistent. After a reset, redo **Steps 1–4** from the All-in-One cell
+and then run `!python prepare_artifacts.py` again to regenerate the `.pkl` artifacts.  
+Your Drive files (CSVs) are always safe.
+
+**Tip — add this as the first cell in your principle notebook:**
+
+```python
+from pathlib import Path
+import sys
+sys.path.append('/content/CS540-ethics-in-data-ai-project')
+
+artifacts = ["base_model.pkl", "X_train.pkl", "X_test.pkl", "y_test.pkl"]
+data_dir = Path('data')
+if not all((data_dir / a).exists() for a in artifacts):
+    print("Artifacts missing — generating now (~30s)...")
+    %run prepare_artifacts.py
+else:
+    print("Artifacts ready.")
+```
+
+This way, even if someone opens the notebook without running the setup cell first,
+it will auto-generate the artifacts instead of crashing on `joblib.load(...)`.
 
 ---
 
@@ -150,5 +183,8 @@ dst.mkdir(exist_ok=True)
 for f in src.glob('*.csv'):
     shutil.copy(f, dst / f.name)
 
-print("Setup complete. Run notebooks in order: 01 → 02 → your module.")
+# ── Artifacts ────────────────────────────────────────────
+!python prepare_artifacts.py
+
+print("Setup complete. Open your principle notebook (03, 04, 05, or 06).")
 ```

@@ -68,6 +68,33 @@ def explain_instance_student(
     return "\n".join(lines)
 
 
+def get_instance_shap_values(
+    explainer: shap.TreeExplainer,
+    instance: pd.Series,
+    class_index: int = 1,
+) -> np.ndarray:
+    """
+    Returns a 1-D array of SHAP values for a single instance and the given class.
+
+    Abstracts the output-format difference between SHAP versions:
+      - Older shap: shap_values() returns list[class0_array, class1_array]
+                    each of shape (n_features,) or (1, n_features)
+      - Newer shap: shap_values() returns ndarray of shape (1, n_features, n_classes)
+
+    Usage in notebooks:
+        sv = get_instance_shap_values(explainer, instance)   # class 1 by default
+        shap_series = pd.Series(sv, index=feature_names)
+    """
+    raw = explainer.shap_values(instance.values.reshape(1, -1))
+    if isinstance(raw, list):
+        # Older API: list of arrays
+        arr = raw[class_index]
+        return arr[0] if arr.ndim == 2 else arr
+    else:
+        # Newer API: (1, n_features, n_classes)
+        return raw[0, :, class_index]
+
+
 def build_lime_explainer(X_train: pd.DataFrame, feature_names: list[str]) -> LimeTabularExplainer:
     """Returns a LIME tabular explainer trained on the training distribution."""
     return LimeTabularExplainer(
