@@ -12,8 +12,29 @@ The design for the Privacy principle focuses on three main pillars:
 
 ## 3. System Implementation
 The privacy module was implemented in Python using `pandas` and `numpy`.
+### Implementation Pipeline
+The following flowchart illustrates how raw data is processed through our privacy-preserving layers before reaching the final model or user interface.
+
+```mermaid
+graph TD
+    A[Raw OULAD Data] --> B{Sensitive Feature Identification}
+    B --> C[Generalization Hierarchies]
+    C --> D[Enforcement-based k-Anonymity]
+    D --> E{Threshold k >= 5 satisfied?}
+    E -- No --> F[Data Suppression/Masking]
+    E -- Yes --> G[Anonymized Dataset]
+    G --> H[Model Training / Inference]
+    H --> I[XAI: SHAP/LIME Explanations]
+    I --> J[Advanced XAI Guard]
+    J --> K[Detect & Mask Proxy Features]
+    K --> L[Secure Privacy-Aware Explanation]
+
+    style F fill:#f96,stroke:#333,stroke-width:2px
+    style L fill:#9f9,stroke:#333,stroke-width:2px
+```
 
 ### Technologies & Methodologies
+...
 -   **Generalization Hierarchies**: We implemented custom mapping functions to reduce the resolution of sensitive features. For example, `imd_band` (Index of Multiple Deprivation) was generalized from 10 deciles into 3 broad categories (Low, Medium, High).
 -   **Suppression Algorithm**: A custom grouping logic was built to identify k-anonymity violations. The system provides two modes: `suppress` (row removal) for training data integrity, and `mask` (feature nullification) for analysis.
 -   **Proxy Detection**: A correlation-based scanner identifies variables with a Pearson correlation $> 0.3$ with any sensitive column.
