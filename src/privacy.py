@@ -47,17 +47,81 @@ def suppress_sensitive_from_explanation(
     )
 
 
-def check_k_anonymity(df: pd.DataFrame, quasi_identifiers: list[str], k: int = 5) -> pd.DataFrame:
+def enforce_k_anonymity(
+    df: pd.DataFrame, 
+    quasi_identifiers: list[str], 
+    k: int = 5,
+    action: str = "suppress"
+) -> pd.DataFrame:
     """
-    Returns groups that violate k-anonymity (fewer than k records with the same QI combination).
-    These rows represent re-identification risk.
+    Ensures the DataFrame satisfies k-anonymity for the given quasi-identifiers.
+    
+    Args:
+        df: Input DataFrame.
+        quasi_identifiers: Columns that could be used for re-identification.
+        k: Minimum group size.
+        action: 'suppress' to remove rows in small groups, or 'mask' to replace them with NaN.
+    
+    Returns:
+        A k-anonymous DataFrame.
     """
-    present_qi = [q for q in quasi_identifiers if q in df.columns]
-    counts = df.groupby(present_qi).size().reset_index(name="count")
-    violations = counts[counts["count"] < k]
-    if violations.empty:
-        print(f"k-anonymity satisfied for k={k} across {present_qi}")
+    df_clean = df.copy()
+    present_qi = [q for q in quasi_identifiers if q in df_clean.columns]
+    
+    # Calculate group sizes
+    group_counts = df_clean.groupby(present_qi).size().reset_index(name="_k_count")
+    df_with_counts = df_clean.merge(group_counts, on=present_qi, how="left")
+    
+    # Identify rows that violate k-anonymity
+    violators_mask = df_with_counts["_k_count"] < k
+    
+    if action == "suppress":
+        # Remove the rows entirely
+        df_result = df_clean[~violators_mask].copy()
+    elif action == "mask":
+        # Keep the rows but mask the quasi-identifiers
+        df_clean.loc[violators_mask, present_qi] = np.nan
+        df_result = df_clean
     else:
-        print(f"{len(violations)} quasi-identifier groups violate k={k}:")
-        print(violations)
-    return violations
+        raise ValueError("Action must be 'suppress' or 'mask'")
+        
+    print(f"k-anonymity ({k}) enforced. Action: {action}. Rows affected: {violators_mask.sum()}")
+    return df_result
+
+
+def generalize_categorical(
+    df: pd.DataFrame, 
+    column: str, 
+    mapping: dict
+) -> pd.DataFrame:
+    """
+    Generalizes a categorical column based on a provided hierarchy mapping.
+    Helps satisfy k-anonymity by reducing granularity.
+    """
+    df = df.copy()
+    if column in df.columns:
+        df[column] = df[column].map(mapping).fillna(df[column])
+    return df
+
+
+def get_default_generalization_maps() -> dict:
+    """Provides standard generalization hierarchies for OULAD sensitive features."""
+    return {
+        "imd_band": {
+            "0-10%": "0-30%", "10-20%": "0-30%", "20-30%": "0-30%",
+            "30-40%": "30-60%", "40-50%": "30-60%", "50-60%": "30-60%",
+            "60-70%": "60-100%", "70-80%": "60-100%", "80-90%": "60-100%", "90-100%": "60-100%",
+        },
+        "age_band": {
+            "0-35": "Under 55",
+            "35-55": "Under 55",
+            "55<=": "Over 55"
+        },
+        "highest_education": {
+            "No Formal quals": "Pre-HE",
+            "Lower Than A Level": "Pre-HE",
+            "A Level or Equivalent": "HE Entry",
+            "HE Qualification": "Post-Secondary",
+            "Post Graduate Qualification": "Post-Secondary"
+        }
+    }
