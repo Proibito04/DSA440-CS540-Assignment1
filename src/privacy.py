@@ -33,16 +33,56 @@ def apply_feature_masking(df: pd.DataFrame, drop_sensitive: bool = True) -> pd.D
     return df
 
 
+def detect_proxy_features(
+    df: pd.DataFrame, 
+    sensitive_cols: list[str], 
+    threshold: float = 0.5
+) -> list[str]:
+    """
+    Identifies features that are highly correlated with sensitive columns.
+    These 'proxy' features can leak private information if included in explanations.
+    """
+    # Use only numeric columns for correlation (or encoded versions)
+    numeric_df = df.select_dtypes(include=[np.number])
+    
+    proxies = set()
+    for s_col in sensitive_cols:
+        # Check if sensitive col is in the numeric df (might be encoded)
+        s_target = s_col if s_col in numeric_df.columns else f"{s_col}_enc"
+        if s_target not in numeric_df.columns:
+            continue
+            
+        correlations = numeric_df.corr()[s_target].abs()
+        high_corr = correlations[correlations > threshold].index.tolist()
+        
+        for feature in high_corr:
+            if feature != s_target and not feature.startswith(tuple(sensitive_cols)):
+                proxies.add(feature)
+                
+    print(f"Detected {len(proxies)} proxy features with correlation > {threshold}: {list(proxies)}")
+    return list(proxies)
+
+
 def suppress_sensitive_from_explanation(
     shap_values: pd.Series,
-    sensitive_encoded_cols: list[str],
+    sensitive_cols: list[str],
+    proxy_cols: list[str] = None
 ) -> pd.Series:
     """
-    Removes sensitive encoded columns from a SHAP Series before surfacing to users.
-    Used by explainability module to enforce privacy-aware explanations.
+    Removes sensitive and proxy columns from a SHAP Series.
     """
+    proxy_cols = proxy_cols or []
+    to_drop = []
+    
+    # Identify encoded sensitive columns
+    for col in sensitive_cols:
+        to_drop.append(col)
+        to_drop.append(f"{col}_enc")
+        
+    to_drop.extend(proxy_cols)
+    
     return shap_values.drop(
-        labels=[c for c in sensitive_encoded_cols if c in shap_values.index],
+        labels=[c for c in to_drop if c in shap_values.index],
         errors="ignore",
     )
 
